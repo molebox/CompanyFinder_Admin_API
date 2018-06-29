@@ -38,7 +38,7 @@
 
   <ItemGroup>
     <Reference Include="CompanyFinderEmailTemplateLib">
-      <HintPath>..\..\CompanyFinderEmailTemplateLib\CompanyFinderEmailTemplateLib\bin\Debug\netcoreapp2.0\CompanyFinderEmailTemplateLib.dll</HintPath>
+      <HintPath>..\..\Competence_EmailLib\CompanyFinderEmailTemplateLib\bin\Debug\netcoreapp2.0\CompanyFinderEmailTemplateLib.dll</HintPath>
     </Reference>
   </ItemGroup>
 
