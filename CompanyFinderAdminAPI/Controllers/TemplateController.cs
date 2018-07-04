@@ -560,7 +560,7 @@ namespace CompanyFinderAdminAPI.Controllers
             }
             else
             {
-                // Get the last antered Id from the db table and +1 ready to assign to new companyToEdit
+                // Get the last entered Id from the db table and +1 ready to assign to new companyToEdit
                 var lastId = GetAllCompanies().OrderByDescending(i => i.CompanyId).First();
                 newId = lastId.CompanyId;
                 newId++;
@@ -579,109 +579,83 @@ namespace CompanyFinderAdminAPI.Controllers
                 RecruitmentWebAddress = template.RecruitmentWebAddress
             };
 
-            if (template.FocusList != null)
+            if (template.CheckedFocusNodes.Count() >= 1)
             {
-                var selectedFocuses = template.FocusList.Where(s => s.IsSelected).ToList();
+                var selectedFocuses = ApiGetAllFocus().ToList();
 
-                // Create the new rows for the new companies companySkills
-                foreach (var selectedFocus in selectedFocuses)
-                {
-                    var compFocus = new CompanyFocus
+                foreach (var focus in selectedFocuses)
+                {                 
+                    // Create the new rows for the new companies companySkills
+                    foreach (var selectedFocus in template.CheckedFocusNodes)
                     {
-                        CompanyId = newCompany.CompanyId,
-                        FocusId = selectedFocus.FocusId
-                    };
-                    newCompany.CompanyFocuses.Add(compFocus);
-                }
-
-
+                        if(focus.FocusId == selectedFocus)
+                        {
+                            var compFocus = new CompanyFocus
+                            {
+                                CompanyId = newCompany.CompanyId,
+                                FocusId = selectedFocus
+                            };
+                            newCompany.CompanyFocuses.Add(compFocus);
+                        }                   
+                    }
+                }             
             }
 
-            if (template.SkillSetsList != null)
+            if (template.CheckedRolesNodes.Count() >= 1)
             {
-                var selectedSkills = template.SkillSetsList.Where(s => s.IsSelected).ToList();
+                var selectedSkills = ApiGetAllSkills().ToList();
+                var selectedDetails = ApiGetAllDetails().ToList();
 
-                // Create the new rows for the new companies companySkills
-                foreach (var selectedSkill in selectedSkills)
+                foreach (var skill in selectedSkills)
                 {
-                    var compSkill = new CompanySkills
+                    // Create the new rows for the new companies companySkills
+                    foreach (var selectedSkill in template.CheckedRolesNodes)
                     {
-                        CompanyId = newCompany.CompanyId,
-                        SkillId = selectedSkill.SkillId
-                    };
-                    newCompany.CompanySkills.Add(compSkill);
+                        if(skill.SkillId == selectedSkill)
+                        {
+                            var compSkill = new CompanySkills
+                            {
+                                CompanyId = newCompany.CompanyId,
+                                SkillId = selectedSkill
+                            };
+                            newCompany.CompanySkills.Add(compSkill);
+                        }                      
+                    }
                 }
 
-
-            }
-            if (template.SkillDetailsList != null)
-            {
-                var selectedDetails = template.SkillDetailsList.Where(d => d.IsSelected).ToList();
-
-                // Create the new rows for the new companies companyDetails
-                foreach (var selectedDetail in selectedDetails)
+                foreach (var detail in selectedDetails)
                 {
-                    var compDetail = new CompanyDetails
+                    foreach (var selectedDetail in template.CheckedRolesNodes)
                     {
-                        CompanyId = newCompany.CompanyId,
-                        SkillDetailId = selectedDetail.SkillDetailId
-                    };
-                    newCompany.CompanyDetails.Add(compDetail);
-                }
-
-
+                        if(detail.SkillDetailId == selectedDetail)
+                        {
+                            var compDetail = new CompanyDetails
+                            {
+                                CompanyId = newCompany.CompanyId,
+                                SkillDetailId = selectedDetail
+                            };
+                            newCompany.CompanyDetails.Add(compDetail);
+                        }                 
+                    }
+                }               
             }
-            if (template.SkillDetailsList == null && template.SkillSetsList == null)
-            {
+
                 if (ModelState.IsValid)
                 {
-                    var foundCompany = _context.TemporaryCompanyTemplate.SingleOrDefault(c => c.CompanyGuid == template.UniqueUrl);
+                    var foundCompany = _context.TemporaryCompanyTemplate.SingleOrDefault(c => c.CompanyId == template.CompanyId);
 
                     // Remove the company from the companySkills table via the id
-                    var removeCompSkills = _context.TemporaryCompanySkills.Where(c => c.Company.CompanyGuid == template.UniqueUrl);
+                    var removeCompSkills = _context.TemporaryCompanySkills.Where(c => c.Company.CompanyId == template.CompanyId);
 
                     _context.TemporaryCompanySkills.RemoveRange(removeCompSkills);
 
                     // Remove the company from the companySkills table via the id
-                    var removeCompDetails = _context.TemporaryCompanyDetails.Where(c => c.Company.CompanyGuid == template.UniqueUrl);
+                    var removeCompDetails = _context.TemporaryCompanyDetails.Where(c => c.Company.CompanyId == template.CompanyId);
 
                     _context.TemporaryCompanyDetails.RemoveRange(removeCompDetails);
 
                     // Remove the company from the companyFocus table via the id
-                    var removeCompFocus = _context.TemporaryCompanyFocus.Where(c => c.Company.CompanyGuid == template.UniqueUrl);
-
-                    _context.TemporaryCompanyFocus.RemoveRange(removeCompFocus);
-
-                    // Delete the company from the temp table before filling back in with the submitted form details
-                    _context.TemporaryCompanyTemplate.Remove(foundCompany);
-
-                    _context.SaveChanges();
-
-                    await CreateCompany(newCompany);
-
-                    var result = new ObjectResult(template);
-                    return result;
-                }
-            }
-            else
-            {
-
-                if (ModelState.IsValid)
-                {
-                    var foundCompany = _context.TemporaryCompanyTemplate.SingleOrDefault(c => c.CompanyGuid == template.UniqueUrl);
-
-                    // Remove the company from the companySkills table via the id
-                    var removeCompSkills = _context.TemporaryCompanySkills.Where(c => c.Company.CompanyGuid == template.UniqueUrl);
-
-                    _context.TemporaryCompanySkills.RemoveRange(removeCompSkills);
-
-                    // Remove the company from the companySkills table via the id
-                    var removeCompDetails = _context.TemporaryCompanyDetails.Where(c => c.Company.CompanyGuid == template.UniqueUrl);
-
-                    _context.TemporaryCompanyDetails.RemoveRange(removeCompDetails);
-
-                    // Remove the company from the companyFocus table via the id
-                    var removeCompFocus = _context.TemporaryCompanyFocus.Where(c => c.Company.CompanyGuid == template.UniqueUrl);
+                    var removeCompFocus = _context.TemporaryCompanyFocus.Where(c => c.Company.CompanyId == template.CompanyId);
 
                     _context.TemporaryCompanyFocus.RemoveRange(removeCompFocus);
 
@@ -696,7 +670,7 @@ namespace CompanyFinderAdminAPI.Controllers
                     return result;
                 }
 
-            }
+            
             return NotFound();
         }
 
@@ -974,6 +948,213 @@ namespace CompanyFinderAdminAPI.Controllers
         private IEnumerable<Focus> ApiGetAllFocus() => _context.Focus.ToList();
         private IEnumerable<Companies> ApiGetAllCompanies() => _context.Companies.ToList();
         private IEnumerable<SkillSet> ApiGetAllSkills() => _context.SkillSet.ToList();
+
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        ///// <param name="template"></param>
+        ///// <returns></returns>
+        //[HttpPost]
+        //[AllowAnonymous]
+        //[Route("~/api/template/submittedtemplate")]
+        //public async Task<IActionResult> SubmittedCompanyTemplate([FromBody]CompanyTemplateBindingModel template)
+        //{
+
+        //    var skillSets = ApiGetAllSkills();
+        //    var skillDetails = ApiGetAllDetails();
+        //    var focuses = ApiGetAllFocus();
+        //    var skillsFromClient = new List<SkillSet>();
+        //    var detailsFromClient = new List<SkillDetail>();
+        //    var focusFromClient = new List<Focus>();
+
+        //    var sent_At_DateTime_Now = DateTime.Now;
+        //    var companyTemplate = new TemporaryCompanyTemplate();
+
+        //    if (template.CheckedRolesNodes.Count != 0)
+        //    {
+        //        //Match the ids to the skills in the database and add the skill objects to a new list
+        //        foreach (var skill in skillSets)
+        //        {
+        //            foreach (var node_id in template.CheckedRolesNodes)
+        //            {
+        //                if (node_id == skill.SkillId)
+        //                {
+        //                    skill.IsSelected = true;
+        //                    skillsFromClient.Add(skill);
+        //                }
+        //            }
+        //        }
+        //        //Match the ids to the details in the database and add the detail objects to a new list
+        //        foreach (var detail in skillDetails)
+        //        {
+        //            foreach (var node_id in template.CheckedRolesNodes)
+        //            {
+        //                if (node_id == detail.SkillDetailId)
+        //                {
+        //                    detail.IsSelected = true;
+        //                    detailsFromClient.Add(detail);
+        //                }
+        //            }
+        //        }
+        //    }
+        //    if (template.CheckedFocusNodes.Count != 0)
+        //    {
+        //        //Match the ids to the focus in the database and add the focus objects to a new list
+        //        foreach (var focus in focuses)
+        //        {
+        //            foreach (var node_id in template.CheckedFocusNodes)
+        //            {
+        //                if (node_id == focus.FocusId)
+        //                {
+        //                    focus.IsSelected = true;
+        //                    focusFromClient.Add(focus);
+        //                }
+        //            }
+        //        }
+        //    }
+
+        //    int newId = 0;
+
+        //    if (!ApiGetAllCompanies().Any())
+        //    {
+        //        newId = 1;
+        //    }
+        //    else
+        //    {
+        //        // Get the last antered Id from the db table and +1 ready to assign to new companyToEdit
+        //        var lastId = ApiGetAllCompanies().OrderByDescending(i => i.CompanyId).First();
+        //        newId = lastId.CompanyId;
+        //        newId++;
+        //    }
+
+        //    //var foundCompany = _context.TemporaryCompanyTemplate.SingleOrDefault(c => c.CompanyGuid == template.UniqueUrl);
+
+
+        //        companyTemplate.CompanyId = newId;
+        //        companyTemplate.CompanyName = template.CompanyName;
+        //        companyTemplate.ContactPerson = template.ContactPerson;
+        //        companyTemplate.Email = template.Email;
+        //        companyTemplate.RecruitmentWebAddress = template.RecruitmentWebAddress;
+        //        companyTemplate.Phone = template.Phone;
+        //        companyTemplate.Website = template.Website;
+        //        companyTemplate.Bio = template.Bio;
+        //        companyTemplate.CompanyGuid = template.UniqueUrl;
+        //        companyTemplate.Locked = true;
+        //        companyTemplate.OtherNotes = template.OtherNotes;
+        //        companyTemplate.Sent_at = sent_At_DateTime_Now;
+        //        companyTemplate.Received_at = DateTime.Now;
+
+
+        //    //// Remove the company from the companySkills table via the id
+        //    //var removeCompSkills = _context.TemporaryCompanySkills.Where(c => c.Company.CompanyGuid == template.CompanyGuid);
+
+        //    //_context.TemporaryCompanySkills.RemoveRange(removeCompSkills);
+
+        //    //// Remove the company from the companySkills table via the id
+        //    //var removeCompDetails = _context.TemporaryCompanyDetails.Where(c => c.Company.CompanyGuid == template.CompanyGuid);
+
+        //    //_context.TemporaryCompanyDetails.RemoveRange(removeCompDetails);
+
+        //    //// Remove the company from the companyFocus table via the id
+        //    //var removeCompFocus = _context.TemporaryCompanyFocus.Where(c => c.Company.CompanyGuid == template.CompanyGuid);
+
+        //    //_context.TemporaryCompanyFocus.RemoveRange(removeCompFocus);
+
+        //    //// Delete the company from the temp table before filling back in with the submitted form details
+        //    //_context.TemporaryCompanyTemplate.Remove(foundCompany);
+
+        //    //_context.SaveChanges();
+
+        //    try
+        //    {
+        //        if (template.CheckedFocusNodes != null)
+        //        {
+        //            //var selectedFocuses = focusFromClient.Where(s => s.IsSelected).ToList();
+
+        //            // Create the new rows for the new companies companyFocus
+        //            foreach (var selectedFocus in focusFromClient)
+        //            {
+        //                var compFocus = new TemporaryCompanyFocus
+        //                {
+        //                    CompanyId = companyTemplate.CompanyId,
+        //                    FocusId = selectedFocus.FocusId
+        //                };
+        //                companyTemplate.TemporaryCompanyFocuses.Add(compFocus);
+        //                //_context.TemporaryCompanyFocus.Add(compFocus);
+        //            }
+        //        }
+        //        if (template.CheckedRolesNodes != null)
+        //        {
+        //            //var selectedSkills = skillsFromClient.Where(s => s.IsSelected).ToList();
+
+        //            // Create the new rows for the new companies companySkills
+        //            foreach (var selectedSkill in skillsFromClient)
+        //            {
+        //                var compSkill = new TemporaryCompanySkills
+        //                {
+        //                    CompanyId = companyTemplate.CompanyId,
+        //                    SkillId = selectedSkill.SkillId
+        //                };
+        //                companyTemplate.TemporaryCompanySkills.Add(compSkill);
+        //                //_context.TemporaryCompanySkills.Add(compSkill);
+        //            }
+
+        //            //var selectedDetails = detailsFromClient.Where(d => d.IsSelected).ToList();
+
+        //            // Create the new rows for the new companies companyDetails
+        //            foreach (var selectedDetail in detailsFromClient)
+        //            {
+        //                var compDetail = new TemporaryCompanyDetails
+        //                {
+        //                    CompanyId = companyTemplate.CompanyId,
+        //                    SkillDetailId = selectedDetail.SkillDetailId
+        //                };
+        //                companyTemplate.TemporaryCompanyDetails.Add(compDetail);
+        //                //_context.TemporaryCompanyDetails.Add(compDetail);
+        //            }
+        //        }
+        //        _context.SaveChanges();
+
+
+
+
+
+        //        //if (template.SkillDetailsList == null && template.SkillSetsList == null)
+        //        //{
+        //        //    if (ModelState.IsValid)
+        //        //    {
+        //        //        await SaveCompanyDataToTemporaryTable(companyTemplate);
+
+        //        //        //SendTemplateSummary(companyTemplate);
+        //        //        var result = new ObjectResult(template);
+        //        //        return result;
+        //        //    }
+        //        //}
+        //        //else
+        //        //{
+        //            if (ModelState.IsValid)
+        //            {
+        //                await SaveCompanyDataToTemporaryTable(companyTemplate);
+
+        //                //SendTemplateSummary(companyTemplate);
+        //                var result = new ObjectResult(template);
+        //                return result;
+        //            }
+
+        //        //}
+        //    }
+        //    catch (Exception e)
+        //    {
+
+        //        Console.WriteLine(e);
+        //        return NotFound(e);
+        //    }
+
+
+        //    return NotFound();
+
+        //}
+
 
         /// <summary>
         /// 
