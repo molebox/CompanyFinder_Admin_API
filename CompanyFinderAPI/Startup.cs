@@ -59,7 +59,13 @@ namespace CompanyFinderAPI
 
             services.AddIdentity<IdentityUser, IdentityRole>()
                 .AddEntityFrameworkStores<AppIdentityDbContext>();
-            
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("RequireUserLoginAccess", policy => policy.RequireRole("User"));
+                options.AddPolicy("RequireAdminAccess", policy => policy.RequireRole("Admin"));
+            });
+
         }
 
         /// <summary>
