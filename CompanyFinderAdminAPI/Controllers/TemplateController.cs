@@ -1337,9 +1337,11 @@ namespace CompanyFinderAdminAPI.Controllers
                     Address = SenderAddress
                 };
 
+                string content = sendTemplate.EmailContent.Replace(Environment.NewLine, "<br/>");
+
                 emailToSend.ToAddresses.Add(email);
                 emailToSend.FromAddresses.Add(fromEmail);
-                emailToSend.Content = sendTemplate.EmailContent + ' ' + sendTemplate.Link;
+                emailToSend.Content = content + ' ' + sendTemplate.Link;
                 emailToSend.Subject = sendTemplate.EmailSubject;
 
                 int emailId;
