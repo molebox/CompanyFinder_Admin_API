@@ -48,6 +48,7 @@ namespace CompanyFinderAdminAPI.BindingModels
         /// <summary>
         /// The Email content
         /// </summary>
+        [DataType(DataType.MultilineText)]
         public string EmailContent { get; set; }
         /// <summary>
         /// Unique Url for template link

@@ -59,7 +59,13 @@ namespace CompanyFinderAPI
 
             services.AddIdentity<IdentityUser, IdentityRole>()
                 .AddEntityFrameworkStores<AppIdentityDbContext>();
-            
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("RequireUserLoginAccess", policy => policy.RequireRole("User"));
+                options.AddPolicy("RequireAdminAccess", policy => policy.RequireRole("Admin"));
+            });
+
         }
 
         /// <summary>
@@ -76,12 +82,12 @@ namespace CompanyFinderAPI
             }
 
             // ---- enable CORS for requests from anywhere ----
-            //app.UseCors(options => options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod().AllowCredentials());
+            app.UseCors(options => options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod().AllowCredentials());
 
             // Shows UseCors with named policy.
             //app.UseCors("SiteCorsPolicy");
 
-            //app.UseCors(b => b.WithOrigins("http://localhost:50895").AllowAnyHeader().AllowAnyMethod().AllowCredentials());
+            //app.UseCors(b => b.WithOrigins("http://localhost:3000").AllowAnyHeader().AllowAnyMethod().AllowCredentials());
 
             app.UseMvc();
             

@@ -49,8 +49,16 @@ namespace CompanyFinderAdminAPI.Controllers
         {
             var treeNodes = _context.TreeNodes.ToList();
 
-            var result = new ObjectResult(treeNodes);
-            return result;
+
+            if (!treeNodes.Any())
+            {
+                return NotFound();
+            }
+            else
+            {
+                var result = new ObjectResult(treeNodes);
+                return result;
+            }
         }
 
         private IEnumerable<TreeNodes> ApiGetAllTreeNodes() => _context.TreeNodes.ToList();
@@ -316,8 +324,16 @@ namespace CompanyFinderAdminAPI.Controllers
         {
             var focusNodes = _context.FocusNodes.ToList();
 
-            var result = new ObjectResult(focusNodes);
-            return result;
+
+            if (!focusNodes.Any())
+            {
+                return NotFound();
+            }
+            else
+            {
+                var result = new ObjectResult(focusNodes);
+                return result;
+            }
         }
 
         /// <summary>
